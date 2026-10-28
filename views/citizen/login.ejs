@@ -1,0 +1,91 @@
+<%- include('../partials/head') %>
+<body class="bg-pink-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen font-sans">
+<%- include('../partials/navbar') %>
+
+<main class="max-w-6xl mx-auto px-4 py-10 lg:py-16">
+  <div class="overflow-hidden rounded-3xl border border-pink-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl lg:grid lg:grid-cols-2">
+    <section class="flex flex-col justify-between bg-gradient-to-br from-blue-700 via-indigo-700 to-violet-800 p-8 text-white sm:p-12">
+      <a href="/" class="text-xl font-extrabold tracking-tight text-white">Connectoo</a>
+      <div class="py-12">
+        <p class="text-sm font-bold uppercase tracking-[0.2em] text-blue-200">Better neighborhoods, together</p>
+        <h1 class="mt-4 max-w-md text-4xl font-extrabold leading-tight sm:text-5xl">Make local change visible.</h1>
+        <p class="mt-5 max-w-md text-blue-100">Report civic issues, coordinate field work, and follow every update from your community.</p>
+      </div>
+      <p class="text-sm text-blue-200">One place for citizens and municipal teams.</p>
+    </section>
+
+    <section class="p-6 sm:p-10 lg:p-12">
+      <h2 class="text-2xl font-bold">Welcome back</h2>
+      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Choose your account type to continue.</p>
+      <div class="mt-7 grid grid-cols-3 gap-2 rounded-xl bg-slate-100 dark:bg-slate-900 p-1" role="tablist" aria-label="Account type">
+        <button type="button" class="login-tab rounded-lg px-2 py-2 text-sm font-semibold" data-tab="citizen" role="tab">Citizen</button>
+        <button type="button" class="login-tab rounded-lg px-2 py-2 text-sm font-semibold" data-tab="official" role="tab">Official</button>
+        <button type="button" class="login-tab rounded-lg px-2 py-2 text-sm font-semibold" data-tab="worker" role="tab">Field worker</button>
+      </div>
+
+      <div id="login-panel-citizen" class="login-panel <%= activeTab === 'citizen' ? '' : 'hidden' %>" role="tabpanel">
+        <form id="login-form" action="/login" method="POST" class="mt-6 space-y-4">
+          <div>
+            <label for="login-username" class="mb-1 block text-sm font-medium">Username</label>
+            <input id="login-username" name="username" type="text" required autocomplete="username" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5">
+          </div>
+          <div>
+            <label for="login-password" class="mb-1 block text-sm font-medium">Password</label>
+            <input id="login-password" name="password" type="password" required autocomplete="current-password" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5">
+          </div>
+          <button id="login-submit" type="submit" class="w-full rounded-lg bg-blue-600 py-2.5 font-semibold text-white hover:bg-blue-500">Sign in as citizen</button>
+        </form>
+        <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">New here? <a id="login-register-link" href="/register" class="font-semibold text-blue-600 dark:text-blue-400 hover:underline">Create a citizen account</a></p>
+      </div>
+
+      <div id="login-panel-official" class="login-panel <%= activeTab === 'official' ? '' : 'hidden' %>" role="tabpanel">
+        <form action="/official/login" method="POST" class="mt-6 space-y-4">
+          <div>
+            <label for="official-username" class="mb-1 block text-sm font-medium">Username</label>
+            <input id="official-username" name="username" type="text" required autocomplete="username" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5">
+          </div>
+          <div>
+            <label for="official-password" class="mb-1 block text-sm font-medium">Password</label>
+            <input id="official-password" name="password" type="password" required autocomplete="current-password" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5">
+          </div>
+          <button type="submit" class="w-full rounded-lg bg-blue-600 py-2.5 font-semibold text-white hover:bg-blue-500">Sign in as official</button>
+        </form>
+      </div>
+
+      <div id="login-panel-worker" class="login-panel <%= activeTab === 'worker' ? '' : 'hidden' %>" role="tabpanel">
+        <form action="/field/login" method="POST" class="mt-6 space-y-4">
+          <div>
+            <label for="worker-username" class="mb-1 block text-sm font-medium">Username</label>
+            <input id="worker-username" name="username" type="text" required autocomplete="username" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5">
+          </div>
+          <div>
+            <label for="worker-password" class="mb-1 block text-sm font-medium">Password</label>
+            <input id="worker-password" name="password" type="password" required autocomplete="current-password" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5">
+          </div>
+          <button type="submit" class="w-full rounded-lg bg-blue-600 py-2.5 font-semibold text-white hover:bg-blue-500">Sign in as field worker</button>
+        </form>
+      </div>
+    </section>
+  </div>
+</main>
+<script>
+  (function () {
+    var tabs = document.querySelectorAll('.login-tab');
+    function activate(name) {
+      tabs.forEach(function (tab) {
+        var active = tab.getAttribute('data-tab') === name;
+        var panel = document.getElementById('login-panel-' + tab.getAttribute('data-tab'));
+        tab.setAttribute('aria-selected', String(active));
+        panel.classList.toggle('hidden', !active);
+        panel.hidden = !active;
+      });
+    }
+    tabs.forEach(function (tab) {
+      tab.addEventListener('click', function () { activate(tab.getAttribute('data-tab')); });
+    });
+    activate(<%- JSON.stringify(['citizen', 'official', 'worker'].includes(activeTab) ? activeTab : 'citizen') %>);
+  })();
+</script>
+<script src="/js/main.js"></script>
+</body>
+</html>

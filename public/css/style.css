@@ -1,0 +1,80 @@
+/* public/css/style.css : small additions on top of Tailwind CDN */
+html { scroll-behavior: smooth; }
+body { font-family: 'Inter', system-ui, sans-serif; }
+body { background-color: #fdf2f8; color: #0f172a; }
+.dark body { background-color: #2a1020 !important; color: #fce7f3; }
+
+html:not(.dark) .bg-slate-900 { background-color: #fdf2f8 !important; }
+html:not(.dark) .bg-slate-900\/90 { background-color: rgb(253 242 248 / 0.95) !important; }
+html:not(.dark) .bg-slate-800,
+html:not(.dark) .bg-slate-800\/80 { background-color: #ffffff !important; }
+html:not(.dark) .bg-slate-700,
+html:not(.dark) .bg-slate-700\/60,
+html:not(.dark) .bg-slate-700\/50 { background-color: #fce7f3 !important; }
+html:not(.dark) .bg-slate-100 { background-color: #fce7f3 !important; }
+html:not(.dark) .text-slate-100 { color: #0f172a !important; }
+html:not(.dark) .text-slate-200 { color: #1e293b !important; }
+html:not(.dark) .text-slate-300 { color: #334155 !important; }
+html:not(.dark) .text-slate-400 { color: #64748b !important; }
+html:not(.dark) .border-slate-700,
+html:not(.dark) .border-slate-700\/60,
+html:not(.dark) .border-slate-600 { border-color: #fbcfe8 !important; }
+html:not(.dark) .border-slate-200 { border-color: #fbcfe8 !important; }
+html:not(.dark) .hover\:bg-slate-800:hover,
+html:not(.dark) .hover\:bg-slate-700\/60:hover { background-color: #fce7f3 !important; }
+html:not(.dark) .bg-slate-900.text-slate-100 { background-color: #fdf2f8 !important; }
+
+.dark .dark\:bg-slate-950,
+.dark .dark\:bg-slate-900,
+.dark .dark\:bg-slate-900\/95 { background-color: #2a1020 !important; }
+.dark .dark\:bg-slate-800,
+.dark .dark\:bg-slate-800\/80,
+.dark .dark\:bg-slate-800\/60 { background-color: #3b1a2e !important; }
+.dark .dark\:bg-slate-700,
+.dark .dark\:bg-slate-700\/60 { background-color: #51243c !important; }
+.dark .dark\:border-slate-700,
+.dark .dark\:border-slate-600 { border-color: #63304c !important; }
+.dark .dark\:text-slate-100 { color: #fce7f3 !important; }
+.dark .dark\:text-slate-200 { color: #fbcfe8 !important; }
+.dark .dark\:text-slate-300 { color: #f9a8d4 !important; }
+.dark .dark\:text-slate-400 { color: #e9a8c9 !important; }
+.dark .text-blue-300,
+.dark .text-blue-400,
+.dark .text-blue-500,
+.dark .dark\:text-blue-300,
+.dark .dark\:text-blue-400 { color: #f9a8d4 !important; }
+.dark .bg-blue-600 { background-color: #be185d !important; }
+.dark .hover\:bg-blue-500:hover { background-color: #db2777 !important; }
+.dark .border-blue-500 { border-color: #ec4899 !important; }
+.dark .dark\:hover\:bg-slate-800:hover,
+.dark .dark\:hover\:bg-slate-700:hover { background-color: #51243c !important; }
+.dark .dark\:from-slate-800\/60.dark\:to-slate-900 {
+  background-image: linear-gradient(to bottom, #3b1a2e, #2a1020) !important;
+}
+.dark .hype-btn[data-hyped="true"] { background-color: #be185d; border-color: #be185d; }
+
+#report-map, #authority-map { min-height: 340px; }
+.leaflet-container { z-index: 0; border-radius: 0.75rem; }
+.map-marker { border: 2px solid white; border-radius: 9999px; width: 16px; height: 16px; }
+.map-marker.pending { background: #ef4444; }
+.map-marker.assigned { background: #f59e0b; }
+.map-marker.resolved { background: #22c55e; }
+
+/* Hype toggle: filled blue when the current user has hyped */
+.hype-btn { transition: transform .15s, background-color .15s, border-color .15s, color .15s; }
+.hype-btn:active { transform: scale(0.95); }
+.hype-btn[data-hyped="true"] { background-color: #2563EB; border-color: #2563EB; color: #fff; }
+.hype-btn[disabled] { opacity: .7; cursor: wait; }
+
+/* Sort indicators on dashboard headers */
+th.sortable:hover { color: #F1F5F9; }
+th.sortable[data-dir="asc"]::after { content: ' ▲'; }
+th.sortable[data-dir="desc"]::after { content: ' ▼'; }
+
+/* Highlight a comment when linked via #comment-{id} */
+.comment:target > div:first-child { box-shadow: 0 0 0 2px #2563EB; }
+#comments { scroll-margin-top: 80px; }
+.comment { scroll-margin-top: 80px; }
+.login-tab[aria-selected="true"] { background: white; box-shadow: 0 1px 3px rgb(15 23 42 / 0.12); }
+.dark .login-tab[aria-selected="true"] { background: #334155; }
+.image-modal[open] { display: flex; }

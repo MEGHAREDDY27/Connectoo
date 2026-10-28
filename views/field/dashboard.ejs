@@ -1,0 +1,101 @@
+<%- include('../partials/head') %>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<body class="bg-pink-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen font-sans">
+<%- include('../partials/navbar') %>
+
+<main class="mx-auto max-w-6xl space-y-6 px-4 py-8">
+  <header>
+    <p class="text-sm font-semibold uppercase tracking-widest text-blue-600 dark:text-blue-400">Field operations</p>
+    <h1 class="mt-1 text-3xl font-extrabold">Your assigned tasks</h1>
+    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Update each issue after the work is complete and attach a note or photo as proof.</p>
+  </header>
+
+  <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm">
+    <div class="mb-3"><h2 class="font-bold">Issue map</h2><p class="text-xs text-slate-500 dark:text-slate-400">Global issue locations: red pending, amber active, green resolved.</p></div>
+    <div id="authority-map" class="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700"></div>
+  </section>
+
+  <section class="grid gap-4 md:grid-cols-2">
+    <% reports.forEach(function (report) { %>
+      <article class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm">
+        <div class="flex items-start justify-between gap-3">
+          <div><p class="text-xs font-bold uppercase tracking-wide text-blue-600 dark:text-blue-400"><%= report.category || 'Other' %> · <%= report.ward %></p><h2 class="mt-2 text-lg font-bold"><%= report.title %></h2></div>
+          <span class="rounded-full px-2.5 py-1 text-xs font-bold <%= statusBadge(report.status) %>"><%= report.status %></span>
+        </div>
+        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400"><%= report.location %></p>
+        <a href="https://www.google.com/maps/search/?api=1&amp;query=<%= encodeURIComponent(report.latitude !== null && report.longitude !== null ? report.latitude + ',' + report.longitude : report.location) %>" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex items-center gap-2 rounded-lg border border-pink-300 px-3 py-1.5 text-sm font-semibold text-pink-700 hover:bg-pink-50 dark:border-slate-600 dark:text-pink-300 dark:hover:bg-slate-700">Get directions</a>
+        <p class="mt-3 text-sm"><%= report.description %></p>
+        <a href="/reports/<%= report.id %>" class="mt-3 inline-block text-sm font-semibold text-blue-600 hover:underline dark:text-blue-400">View issue details</a>
+        <% if (report.status === 'assigned') { %>
+          <form action="/field/tasks/<%= report.id %>/resolve" method="POST" enctype="multipart/form-data" class="mt-4 space-y-3 border-t border-slate-200 pt-4 dark:border-slate-700">
+            <label for="proof-note-<%= report.id %>" class="block text-sm font-semibold">Completion note</label>
+            <textarea id="proof-note-<%= report.id %>" name="proof_note" rows="2" maxlength="1000" placeholder="Describe the work completed" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900"></textarea>
+            <label for="proof-image-<%= report.id %>" class="block text-sm font-semibold">Proof photo (optional · max 5 MB)</label>
+            <input id="proof-image-<%= report.id %>" name="proof_image" type="file" accept="image/jpeg,image/png,image/webp" class="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 dark:file:bg-slate-700">
+            <button type="submit" class="w-full rounded-lg bg-emerald-600 px-4 py-2 font-semibold text-white hover:bg-emerald-500">Mark resolved</button>
+          </form>
+        <% } else if (report.status === 'resolved') { %>
+          <div class="mt-4 rounded-lg bg-emerald-50 p-3 text-sm dark:bg-emerald-950/30">
+            <p class="font-semibold text-emerald-800 dark:text-emerald-300">Completed</p>
+            <% if (report.proof_note) { %><p class="mt-1"><%= report.proof_note %></p><% } %>
+            <% if (report.proof_image) { %>
+              <button type="button" class="image-modal-trigger mt-2 block" data-image-src="<%= report.proof_image %>" data-image-alt="Completion proof for <%= report.title %>">
+                <img src="<%= report.proof_image %>" alt="Completion proof for <%= report.title %>" loading="lazy" class="max-h-64 rounded-lg object-contain cursor-zoom-in">
+                <span class="mt-1 inline-block text-xs text-emerald-700 dark:text-emerald-300">Click to enlarge</span>
+              </button>
+            <% } %>
+          </div>
+        <% } %>
+      </article>
+    <% }); %>
+    <% if (!reports.length) { %>
+      <div class="rounded-2xl border border-dashed border-slate-300 p-10 text-center text-slate-500 dark:border-slate-600 dark:text-slate-400 md:col-span-2">No tasks assigned to you yet.</div>
+    <% } %>
+  </section>
+</main>
+<dialog id="image-modal" class="image-modal fixed inset-0 m-0 h-full max-h-none w-full max-w-none items-center justify-center bg-slate-950/90 p-4 backdrop:bg-slate-950/90">
+  <div class="relative max-h-full max-w-5xl">
+    <button type="button" id="image-modal-close" class="absolute -right-3 -top-3 z-10 rounded-full bg-white px-3 py-1.5 font-bold text-slate-900 shadow" aria-label="Close image">✕</button>
+    <img id="image-modal-content" src="" alt="" class="max-h-[90vh] max-w-full rounded-xl object-contain">
+  </div>
+</dialog>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+  (function () {
+    var reports = <%- JSON.stringify(locations).replace(/</g, '\\u003c') %>;
+    if (!window.L) return;
+    var map = L.map('authority-map').setView([17.385, 78.4867], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+    var cluster = L.markerClusterGroup();
+    var bounds = [];
+    reports.filter(function (report) { return report.latitude !== null && report.longitude !== null; }).forEach(function (report) {
+      var state = report.status === 'resolved' ? 'resolved' : (report.status === 'assigned' || report.status === 'acknowledged' ? 'assigned' : 'pending');
+      var marker = L.marker([report.latitude, report.longitude], { icon: L.divIcon({ className: '', html: '<span class="map-marker ' + state + '"></span>', iconSize: [16, 16] }) });
+      var popup = document.createElement('div');
+      var title = document.createElement('strong');
+      title.textContent = report.title + ' · ' + report.status;
+      var location = document.createElement('div');
+      location.textContent = report.location + ' · ' + report.ward;
+      var directions = document.createElement('a');
+      directions.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(report.latitude + ',' + report.longitude);
+      directions.target = '_blank';
+      directions.rel = 'noopener noreferrer';
+      directions.textContent = 'Get directions';
+      popup.appendChild(title);
+      popup.appendChild(location);
+      popup.appendChild(directions);
+      marker.bindPopup(popup);
+      cluster.addLayer(marker);
+      bounds.push([report.latitude, report.longitude]);
+    });
+    map.addLayer(cluster);
+    if (bounds.length) map.fitBounds(bounds, { padding: [24, 24], maxZoom: 14 });
+  })();
+</script>
+<script src="/js/main.js"></script>
+<script src="/js/image-modal.js"></script>
+</body>
+</html>

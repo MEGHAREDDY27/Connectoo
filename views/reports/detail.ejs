@@ -1,0 +1,85 @@
+<%- include('../partials/head') %>
+<body class="bg-pink-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen font-sans">
+<%- include('../partials/navbar') %>
+
+<main class="max-w-3xl mx-auto px-4 py-8 space-y-6">
+
+  <article id="report-detail" class="bg-white dark:bg-slate-800 border border-pink-200 dark:border-slate-700 rounded-xl p-6">
+    <div class="flex flex-wrap items-center gap-3">
+      <span id="status-badge-<%= report.id %>" class="text-xs font-bold uppercase tracking-wide px-3 py-0.5 rounded-full <%= statusBadge(report.status) %>"><%= report.status %></span>
+      <span class="text-sm text-slate-400"><%= report.category || 'Other' %> · <%= report.ward %> · <%= report.location %></span>
+    </div>
+    <h1 id="report-title-text" class="mt-3 text-3xl font-extrabold tracking-tight"><%= report.title %></h1>
+    <p class="text-sm text-slate-400 mt-1">Reported by <%= report.author %> · <%= formatDate(report.created_at) %></p>
+
+    <p class="mt-5 text-slate-200 leading-relaxed whitespace-pre-line"><%= report.description %></p>
+
+    <% if (report.image_path) { %>
+      <button type="button" class="image-modal-trigger mt-5 block w-full max-w-lg mx-auto" data-image-src="<%= report.image_path %>" data-image-alt="Photo for <%= report.title %>" aria-label="View report photo">
+        <img id="report-image-display" src="<%= report.image_path %>" alt="Photo for <%= report.title %>" class="rounded-lg border border-pink-200 dark:border-slate-700 w-full cursor-zoom-in">
+      </button>
+    <% } %>
+
+    <% if (report.status === 'resolved' && (report.proof_note || report.proof_image)) { %>
+      <section class="mt-5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+        <h2 class="font-bold text-emerald-700 dark:text-emerald-300">Completion update</h2>
+        <% if (report.proof_note) { %><p class="mt-2 text-sm"><%= report.proof_note %></p><% } %>
+        <% if (report.proof_image) { %>
+          <button type="button" class="image-modal-trigger mt-3 block max-w-lg" data-image-src="<%= report.proof_image %>" data-image-alt="Completion proof for <%= report.title %>" aria-label="View completion proof">
+            <img src="<%= report.proof_image %>" alt="Completion proof for <%= report.title %>" loading="lazy" class="max-h-96 rounded-lg border border-emerald-500/30 object-contain cursor-zoom-in">
+            <span class="mt-1 inline-block text-xs text-emerald-700 dark:text-emerald-300">Click to enlarge</span>
+          </button>
+        <% } %>
+      </section>
+    <% } %>
+
+    <% if (acknowledgements.length) { %>
+      <div id="ack-notes" class="mt-5 border border-amber-500/40 bg-amber-500/10 rounded-lg p-3 text-sm">
+        <% acknowledgements.forEach(function (a) { %>
+          <p class="text-amber-200"><span class="font-semibold"><%= a.official %></span> · <%= formatDate(a.created_at) %><% if (a.note) { %> — <%= a.note %><% } %></p>
+        <% }) %>
+      </div>
+    <% } %>
+
+    <div class="mt-6 relative inline-block">
+      <button type="button" id="hype-btn-<%= report.id %>" class="hype-btn inline-flex items-center gap-2 px-5 py-2 rounded-full border border-slate-600 font-bold hover:border-blue-500"
+              data-id="<%= report.id %>" data-authenticated="<%= user ? 'true' : 'false' %>" data-hyped="<%= hyped ? 'true' : 'false' %>">
+        ▲ HYPE <span id="hype-count-<%= report.id %>"><%= report.hype_count %></span>
+      </button>
+      <div id="hype-login-tip-<%= report.id %>" class="hidden absolute left-0 top-full mt-2 z-10 w-56 bg-slate-700 border border-slate-500 rounded-lg p-3 text-xs shadow-lg">
+        <a href="/login" class="text-blue-300 hover:underline font-semibold">Log in</a> to hype this report.
+      </div>
+    </div>
+  </article>
+
+  <section id="comments" class="bg-white dark:bg-slate-800 border border-pink-200 dark:border-slate-700 rounded-xl p-6">
+    <h2 class="text-lg font-bold mb-4">Comments (<%= comments.length %>)</h2>
+
+    <% if (user) { %>
+      <form id="comment-form" action="/reports/<%= report.id %>/comments" method="POST" class="mb-6">
+        <textarea id="comment-body" name="body" rows="3" required maxlength="2000" placeholder="Add a comment…" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm focus:outline-none focus:border-blue-500"></textarea>
+        <button type="submit" id="comment-submit" class="mt-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-sm font-semibold">Post comment</button>
+      </form>
+    <% } else { %>
+      <p id="comment-login-prompt" class="mb-6 text-sm text-slate-400"><a href="/login" class="text-blue-400 hover:underline">Log in</a> to join the discussion.</p>
+    <% } %>
+
+    <div id="comment-thread">
+      <% if (comments.length === 0) { %>
+        <p class="text-sm text-slate-400">No comments yet.</p>
+      <% } %>
+      <%- include('../partials/commentThread', { comments: comments }) %>
+    </div>
+  </section>
+</main>
+
+<dialog id="image-modal" class="image-modal fixed inset-0 m-0 h-full max-h-none w-full max-w-none items-center justify-center bg-slate-950/90 p-4 backdrop:bg-slate-950/90">
+  <div class="relative max-h-full max-w-5xl">
+    <button type="button" id="image-modal-close" class="absolute -right-3 -top-3 z-10 rounded-full bg-white px-3 py-1.5 font-bold text-slate-900 shadow" aria-label="Close image">✕</button>
+    <img id="image-modal-content" src="" alt="" class="max-h-[90vh] max-w-full rounded-xl object-contain">
+  </div>
+</dialog>
+<script src="/js/image-modal.js"></script>
+<script src="/js/main.js"></script>
+</body>
+</html>

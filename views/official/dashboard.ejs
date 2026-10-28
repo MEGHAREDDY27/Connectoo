@@ -1,0 +1,166 @@
+<%- include('../partials/head') %>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<body class="bg-pink-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen font-sans">
+<%- include('../partials/navbar') %>
+
+<main class="mx-auto max-w-7xl space-y-6 px-4 py-8">
+  <header class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-widest text-blue-600 dark:text-blue-400">Municipal control room</p>
+      <h1 class="mt-1 text-3xl font-extrabold">Issue overview</h1>
+      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Review community reports and coordinate field response.</p>
+    </div>
+    <div class="rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-3 text-sm shadow-sm">
+      Signed in as <span class="font-bold"><%= user.username %></span>
+    </div>
+  </header>
+
+  <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <article class="rounded-2xl border border-pink-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
+      <p class="text-sm font-medium text-red-700 dark:text-red-300">Pending</p><p class="mt-2 text-3xl font-extrabold"><%= stats.open %></p>
+    </article>
+    <article class="rounded-2xl border border-pink-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
+      <p class="text-sm font-medium text-amber-700 dark:text-amber-300">Acknowledged</p><p class="mt-2 text-3xl font-extrabold"><%= stats.acknowledged %></p>
+    </article>
+    <article class="rounded-2xl border border-pink-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
+      <p class="text-sm font-medium text-blue-700 dark:text-blue-300">Assigned</p><p class="mt-2 text-3xl font-extrabold"><%= stats.assigned || 0 %></p>
+    </article>
+    <article class="rounded-2xl border border-pink-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
+      <p class="text-sm font-medium text-emerald-700 dark:text-emerald-300">Resolved</p><p class="mt-2 text-3xl font-extrabold"><%= stats.resolved %></p>
+    </article>
+  </section>
+
+  <section class="grid gap-5 lg:grid-cols-3">
+    <article class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm">
+      <h2 class="font-bold">Issue categories</h2><p class="mb-3 text-xs text-slate-500 dark:text-slate-400">Reported issue types</p>
+      <div class="h-64"><canvas id="category-chart" aria-label="Issue category distribution"></canvas></div>
+    </article>
+    <article class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm">
+      <h2 class="font-bold">Reports by ward</h2><p class="mb-3 text-xs text-slate-500 dark:text-slate-400">Top areas by report volume</p>
+      <div class="h-64"><canvas id="ward-chart" aria-label="Issues by ward"></canvas></div>
+    </article>
+    <article class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm">
+      <h2 class="font-bold">Resolution rate</h2><p class="mb-3 text-xs text-slate-500 dark:text-slate-400">Pending and completed work</p>
+      <div class="h-64"><canvas id="resolution-chart" aria-label="Pending versus resolved issues"></canvas></div>
+    </article>
+  </section>
+
+  <section class="grid gap-5 xl:grid-cols-3">
+    <article class="xl:col-span-2 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm">
+      <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <div><h2 class="font-bold">Issue map</h2><p class="text-xs text-slate-500 dark:text-slate-400">Color key: red pending, amber active, green resolved</p></div>
+        <span class="text-xs text-slate-500 dark:text-slate-400"><%= locations.length %> mapped issues</span>
+      </div>
+      <div id="authority-map" class="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700"></div>
+    </article>
+    <div class="space-y-5">
+      <article class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm">
+        <h2 class="font-bold">Assign a field task</h2>
+        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Assign an open issue to a field worker.</p>
+        <% if (!assignable.length) { %>
+          <p class="mt-4 rounded-lg bg-slate-100 p-3 text-sm text-slate-600 dark:bg-slate-900 dark:text-slate-300">No pending issues are currently available.</p>
+        <% } else if (!workers.length) { %>
+          <p class="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">Create a field worker account below before assigning tasks.</p>
+        <% } else { %>
+          <form action="/official/assign" method="POST" class="mt-4 space-y-3">
+            <label class="block text-xs font-semibold" for="assignment-report">Issue</label>
+            <select id="assignment-report" name="report_id" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900">
+              <% assignable.forEach(function (report) { %><option value="<%= report.id %>">#<%= report.id %> · <%= report.title %> (<%= report.ward %>)</option><% }); %>
+            </select>
+            <label class="block text-xs font-semibold" for="assignment-worker">Field worker</label>
+            <select id="assignment-worker" name="worker_id" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900">
+              <% workers.forEach(function (worker) { %><option value="<%= worker.id %>"><%= worker.username %></option><% }); %>
+            </select>
+            <button type="submit" class="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500">Assign issue</button>
+          </form>
+        <% } %>
+      </article>
+      <article class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm">
+        <h2 class="font-bold">Add a field worker</h2>
+        <form action="/official/workers" method="POST" class="mt-4 space-y-3">
+          <input name="username" required minlength="3" maxlength="30" pattern="[A-Za-z0-9_]+" placeholder="Username" autocomplete="off" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900">
+          <input name="email" type="email" required placeholder="Email" autocomplete="off" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900">
+          <input name="password" type="password" required minlength="8" placeholder="Temporary password (8+ characters)" autocomplete="new-password" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900">
+          <button type="submit" class="w-full rounded-lg border border-blue-600 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50 dark:text-blue-300 dark:hover:bg-slate-700">Create worker account</button>
+        </form>
+      </article>
+    </div>
+  </section>
+
+  <section>
+    <div class="mb-3 flex items-end justify-between"><div><h2 class="text-xl font-bold">Recent issues</h2><p class="text-sm text-slate-500 dark:text-slate-400">Acknowledge new reports or inspect their details.</p></div><span class="text-sm text-slate-500 dark:text-slate-400"><%= reports.length %> total</span></div>
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <% reports.forEach(function (report) { %>
+        <article class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm">
+          <div class="flex items-start justify-between gap-3"><span class="text-xs font-bold uppercase tracking-wide text-blue-600 dark:text-blue-400"><%= report.category || 'Other' %> · <%= report.ward %></span><span class="rounded-full px-2.5 py-1 text-xs font-bold <%= statusBadge(report.status) %>"><%= report.status %></span></div>
+          <h3 class="mt-3 font-bold"><%= report.title %></h3>
+          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400"><%= report.location %> · <%= report.author %></p>
+          <div class="mt-4 flex flex-wrap gap-2">
+            <a href="/reports/<%= report.id %>" class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold dark:border-slate-600">View details</a>
+            <% if (report.status === 'open') { %>
+              <form action="/official/acknowledge/<%= report.id %>" method="POST"><button type="submit" class="rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white">Acknowledge</button></form>
+            <% } %>
+          </div>
+        </article>
+      <% }); %>
+      <% if (!reports.length) { %><p class="text-sm text-slate-500 dark:text-slate-400">No reports yet.</p><% } %>
+    </div>
+  </section>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  (function () {
+    var categories = <%- JSON.stringify(categories).replace(/</g, '\\u003c') %>;
+    var wards = <%- JSON.stringify(wards).replace(/</g, '\\u003c') %>;
+    var stats = <%- JSON.stringify(stats).replace(/</g, '\\u003c') %>;
+    var locations = <%- JSON.stringify(locations).replace(/</g, '\\u003c') %>;
+    var palette = ['#6366f1', '#14b8a6', '#f59e0b', '#ec4899', '#06b6d4', '#8b5cf6'];
+
+    new Chart(document.getElementById('category-chart'), {
+      type: 'pie',
+      data: { labels: categories.map(function (row) { return row.label; }), datasets: [{ data: categories.map(function (row) { return row.count; }), backgroundColor: palette }] },
+      options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    });
+    new Chart(document.getElementById('ward-chart'), {
+      type: 'bar',
+      data: { labels: wards.map(function (row) { return row.label; }), datasets: [{ label: 'Issues', data: wards.map(function (row) { return row.count; }), backgroundColor: '#6366f1', borderRadius: 6 }] },
+      options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }, plugins: { legend: { display: false } } }
+    });
+    new Chart(document.getElementById('resolution-chart'), {
+      type: 'doughnut',
+      data: { labels: ['Pending', 'Resolved'], datasets: [{ data: [stats.open + stats.acknowledged + (stats.assigned || 0), stats.resolved], backgroundColor: ['#ef4444', '#22c55e'] }] },
+      options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    });
+
+    if (window.L) {
+      var map = L.map('authority-map').setView([17.385, 78.4867], 11);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+      var cluster = L.markerClusterGroup();
+      var bounds = [];
+      locations.forEach(function (item) {
+        var color = item.status === 'resolved' ? 'resolved' : (item.status === 'assigned' || item.status === 'acknowledged' ? 'assigned' : 'pending');
+        var marker = L.marker([item.latitude, item.longitude], { icon: L.divIcon({ className: '', html: '<span class="map-marker ' + color + '"></span>', iconSize: [16, 16] }) });
+        var popup = document.createElement('div');
+        var title = document.createElement('strong');
+        title.textContent = item.title;
+        var detail = document.createElement('div');
+        detail.textContent = item.location + ' · ' + item.ward + ' · ' + item.status;
+        popup.appendChild(title);
+        popup.appendChild(detail);
+        marker.bindPopup(popup);
+        cluster.addLayer(marker);
+        bounds.push([item.latitude, item.longitude]);
+      });
+      map.addLayer(cluster);
+      if (bounds.length) map.fitBounds(bounds, { padding: [24, 24], maxZoom: 14 });
+    }
+  })();
+</script>
+<script src="/js/main.js"></script>
+</body>
+</html>

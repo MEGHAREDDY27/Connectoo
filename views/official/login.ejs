@@ -1,0 +1,25 @@
+<%- include('../partials/head') %>
+<body class="bg-pink-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen font-sans">
+<%- include('../partials/navbar') %>
+
+<main class="max-w-md mx-auto px-4 py-12">
+  <div class="bg-white dark:bg-slate-800 border border-pink-200 dark:border-slate-700 rounded-xl p-8">
+    <h1 class="text-2xl font-bold">Authority Login</h1>
+    <p class="text-sm text-slate-400 mt-1">Municipal officials only.</p>
+    <form id="official-login-form" action="/official/login" method="POST" class="mt-6 space-y-4">
+      <div>
+        <label for="official-login-username" class="block text-sm font-medium text-slate-300 mb-1">Username</label>
+        <input id="official-login-username" name="username" type="text" required autocomplete="username" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
+      </div>
+      <div>
+        <label for="official-login-password" class="block text-sm font-medium text-slate-300 mb-1">Password</label>
+        <input id="official-login-password" name="password" type="password" required autocomplete="current-password" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
+      </div>
+      <button id="official-login-submit" type="submit" class="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 font-semibold">Sign In</button>
+    </form>
+  </div>
+</main>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

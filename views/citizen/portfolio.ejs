@@ -1,0 +1,67 @@
+<%- include('../partials/head') %>
+<body class="bg-pink-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen font-sans">
+<%- include('../partials/navbar') %>
+
+<main class="max-w-4xl mx-auto px-4 py-8">
+  <h1 class="text-2xl font-bold">My Portfolio</h1>
+  <p class="text-sm text-slate-400">Signed in as <%= user.username %></p>
+
+  <div role="tablist" class="flex gap-2 mt-6 border-b border-slate-700">
+    <button type="button" role="tab" id="portfolio-tab-reports" data-tab="reports" class="portfolio-tab px-4 py-2 text-sm font-semibold border-b-2 border-blue-500 text-white">My Reports (<%= myReports.length %>)</button>
+    <button type="button" role="tab" id="portfolio-tab-hypes" data-tab="hypes" class="portfolio-tab px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white">My Hypes (<%= myHypes.length %>)</button>
+    <button type="button" role="tab" id="portfolio-tab-activity" data-tab="activity" class="portfolio-tab px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white">Activity (<%= activity.length %>)</button>
+  </div>
+
+  <!-- My Reports -->
+  <section id="portfolio-panel-reports" class="portfolio-panel mt-6 space-y-3">
+    <% if (myReports.length === 0) { %>
+      <p class="text-slate-400">You haven't reported anything yet. <a href="/report" class="text-blue-400 hover:underline">Report an issue</a>.</p>
+    <% } %>
+    <% myReports.forEach(function (r) { %>
+      <div id="my-report-<%= r.id %>" class="bg-white dark:bg-slate-800 border border-pink-200 dark:border-slate-700 rounded-xl p-4 flex items-start justify-between gap-4">
+        <div class="min-w-0">
+          <a href="/reports/<%= r.id %>" class="font-bold text-lg hover:text-blue-300"><%= r.title %></a>
+          <p class="text-sm text-slate-400"><%= r.ward %> · <%= formatDate(r.created_at) %> · ▲ <%= r.hype_count %></p>
+          <span class="inline-block mt-2 text-xs font-bold uppercase px-3 py-0.5 rounded-full <%= statusBadge(r.status) %>"><%= r.status %></span>
+        </div>
+        <form action="/report/<%= r.id %>" method="POST" data-confirm="Delete this report permanently?">
+          <input type="hidden" name="_method" value="DELETE">
+          <button type="submit" id="delete-report-<%= r.id %>" class="px-3 py-1.5 text-sm rounded-md border border-red-500 text-red-300 hover:bg-red-500 hover:text-white">Delete</button>
+        </form>
+      </div>
+    <% }) %>
+  </section>
+
+  <!-- My Hypes -->
+  <section id="portfolio-panel-hypes" class="portfolio-panel hidden mt-6 space-y-3">
+    <% if (myHypes.length === 0) { %>
+      <p class="text-slate-400">You haven't hyped any reports yet.</p>
+    <% } %>
+    <% myHypes.forEach(function (r) { %>
+      <a href="/reports/<%= r.id %>" id="my-hype-<%= r.id %>" class="block bg-white dark:bg-slate-800 border border-pink-200 dark:border-slate-700 rounded-xl p-4 hover:border-pink-500">
+        <div class="flex items-center justify-between">
+          <span class="font-bold"><%= r.title %></span>
+          <span class="text-xs font-bold uppercase px-3 py-0.5 rounded-full <%= statusBadge(r.status) %>"><%= r.status %></span>
+        </div>
+        <p class="text-sm text-slate-400 mt-1"><%= r.ward %> · by <%= r.author %> · ▲ <%= r.hype_count %></p>
+      </a>
+    <% }) %>
+  </section>
+
+  <!-- Activity -->
+  <section id="portfolio-panel-activity" class="portfolio-panel hidden mt-6 space-y-3">
+    <% if (activity.length === 0) { %>
+      <p class="text-slate-400">No comments yet.</p>
+    <% } %>
+    <% activity.forEach(function (c) { %>
+      <a href="/reports/<%= c.report_id %>#comment-<%= c.id %>" id="activity-<%= c.id %>" class="block bg-white dark:bg-slate-800 border border-pink-200 dark:border-slate-700 rounded-xl p-4 hover:border-pink-500">
+        <p class="text-xs text-slate-400">On “<%= c.report_title %>” · <%= formatDate(c.created_at) %></p>
+        <p class="text-sm text-slate-200 mt-1"><%= c.excerpt %></p>
+      </a>
+    <% }) %>
+  </section>
+</main>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

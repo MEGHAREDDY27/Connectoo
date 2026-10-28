@@ -1,0 +1,43 @@
+<%
+  // Turns the flat DB array into a nested tree (Map of id -> comment with children[]).
+  function buildTree(flat) {
+    var byId = new Map();
+    flat.forEach(function (c) { byId.set(c.id, Object.assign({}, c, { children: [] })); });
+    var roots = [];
+    byId.forEach(function (c) {
+      if (c.parent_id === null || c.parent_id === undefined) {
+        roots.push(c);
+      } else if (byId.has(c.parent_id)) {
+        byId.get(c.parent_id).children.push(c);
+      } else {
+        roots.push(c); // orphan safety net
+      }
+    });
+    return roots;
+  }
+  var isNested = (typeof nested !== 'undefined' && nested === true);
+  var nodes = isNested ? comments : buildTree(comments);
+%>
+<% nodes.forEach(function (c) { %>
+  <div class="comment" id="comment-<%= c.id %>">
+    <div class="bg-slate-800 rounded-lg p-3 mb-2">
+      <div class="text-xs text-slate-400">
+        <span class="font-semibold text-slate-300"><%= c.author %></span> · <%= formatDate(c.created_at) %>
+      </div>
+      <p class="text-sm text-slate-200 mt-1 whitespace-pre-line"><%= c.body %></p>
+      <% if (user) { %>
+        <button type="button" id="reply-btn-<%= c.id %>" class="reply-toggle text-xs text-blue-400 hover:underline cursor-pointer mt-2" data-target="reply-form-<%= c.id %>">Reply</button>
+        <form id="reply-form-<%= c.id %>" class="hidden mt-2" action="/reports/<%= report.id %>/comments" method="POST">
+          <input type="hidden" name="parent_id" value="<%= c.id %>">
+          <textarea id="reply-body-<%= c.id %>" name="body" rows="2" required maxlength="2000" placeholder="Write a reply…" class="w-full bg-slate-900 border border-slate-600 rounded-md p-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500"></textarea>
+          <button type="submit" id="reply-submit-<%= c.id %>" class="mt-1 px-3 py-1 text-xs font-semibold rounded-md bg-blue-600 hover:bg-blue-500 text-white">Post reply</button>
+        </form>
+      <% } %>
+    </div>
+    <% if (c.children && c.children.length) { %>
+      <div class="border-l-2 border-slate-600 pl-4 ml-4">
+        <%- include('commentThread', { comments: c.children, nested: true }) %>
+      </div>
+    <% } %>
+  </div>
+<% }) %>

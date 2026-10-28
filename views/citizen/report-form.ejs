@@ -1,0 +1,60 @@
+<%- include('../partials/head') %>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<body class="bg-pink-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen font-sans">
+<%- include('../partials/navbar') %>
+
+<main class="max-w-3xl mx-auto px-4 py-10">
+  <div class="rounded-2xl border border-pink-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm sm:p-8">
+    <h1 class="text-2xl font-bold">Report an issue</h1>
+    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Add the details and pin the issue location for your ward team.</p>
+
+    <form id="report-form" action="/report" method="POST" enctype="multipart/form-data" class="mt-6 space-y-5">
+      <div>
+        <label for="report-title" class="mb-1 block text-sm font-medium">Title</label>
+        <input id="report-title" name="title" type="text" required maxlength="120" value="<%= form.title || '' %>" placeholder="e.g. Broken streetlight near bus stop" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2">
+      </div>
+      <div>
+        <label for="report-description" class="mb-1 block text-sm font-medium">Description</label>
+        <textarea id="report-description" name="description" rows="4" required placeholder="What is happening? Since when?" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2"><%= form.description || '' %></textarea>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-3">
+        <div class="sm:col-span-2">
+          <label for="report-location" class="mb-1 block text-sm font-medium">Location</label>
+          <input id="report-location" name="location" type="text" required value="<%= form.location || '' %>" placeholder="Street / landmark" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2">
+        </div>
+        <div>
+          <label for="report-ward" class="mb-1 block text-sm font-medium">Ward</label>
+          <input id="report-ward" name="ward" type="text" required value="<%= form.ward || '' %>" placeholder="Ward 12" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2">
+        </div>
+      </div>
+      <div>
+        <label for="report-category" class="mb-1 block text-sm font-medium">Issue category</label>
+        <select id="report-category" name="category" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2">
+          <% ['Roads', 'Sanitation', 'Lighting', 'Water', 'Public safety', 'Other'].forEach(function (category) { %>
+            <option value="<%= category %>" <%= form.category === category ? 'selected' : '' %>><%= category %></option>
+          <% }); %>
+        </select>
+      </div>
+      <div>
+        <div class="mb-2 flex items-center justify-between gap-3">
+          <label class="block text-sm font-medium">Pin the issue on the map</label>
+          <span id="map-coordinates" class="text-xs text-slate-500 dark:text-slate-400">No pin selected</span>
+        </div>
+        <div id="report-map" class="overflow-hidden rounded-xl border border-slate-300 dark:border-slate-600"></div>
+        <input id="report-latitude" name="latitude" type="hidden" value="<%= form.latitude ?? '' %>">
+        <input id="report-longitude" name="longitude" type="hidden" value="<%= form.longitude ?? '' %>">
+        <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">Click the map to set the required issue coordinates.</p>
+      </div>
+      <div>
+        <label for="report-image" class="mb-1 block text-sm font-medium">Photo (optional · JPEG, PNG or WEBP · max 5 MB)</label>
+        <input id="report-image" name="image" type="file" accept="image/jpeg,image/png,image/webp" class="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-4 file:py-2 dark:file:bg-slate-700">
+      </div>
+      <button id="report-submit" type="submit" class="w-full rounded-lg bg-blue-600 py-2.5 font-semibold text-white hover:bg-blue-500">Submit report</button>
+    </form>
+  </div>
+</main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/js/report-map.js"></script>
+<script src="/js/main.js"></script>
+</body>
+</html>
