@@ -1,0 +1,64 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_PATH: /var/lib/connectoo/connectoo.db
+      SESSION_SECRET: ${SESSION_SECRET:-development-only-change-me}
+    volumes:
+      - connectoo_data:/var/lib/connectoo
+      - connectoo_uploads:/app/public/uploads
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "require('http').get('http://127.0.0.1:3000', r => process.exit(r.statusCode < 500 ? 0 : 1)).on('error', () => process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  jenkins:
+    image: jenkins/jenkins:lts-jdk17
+    ports:
+      - "8080:8080"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+
+  selenium:
+    image: selenium/standalone-chrome:latest
+    ports:
+      - "4444:4444"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "curl -fsS http://localhost:4444/status | grep -Eq '\"ready\":[[:space:]]*true'"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  maven:
+    image: maven:3.9-eclipse-temurin-17
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - maven_repository:/root/.m2
+    environment:
+      SELENIUM_REMOTE_URL: http://selenium:4444/wd/hub
+    command: ["mvn", "--batch-mode", "test"]
+    depends_on:
+      app:
+        condition: service_healthy
+      selenium:
+        condition: service_healthy
+
+volumes:
+  connectoo_data:
+  connectoo_uploads:
+  jenkins_home:
+  maven_repository:
