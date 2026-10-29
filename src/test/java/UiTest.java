@@ -16,7 +16,7 @@ class UiTest {
         String remoteUrl = System.getenv().getOrDefault(
                 "SELENIUM_REMOTE_URL", "http://selenium:4444/wd/hub");
         driver = new RemoteWebDriver(new URL(remoteUrl), new ChromeOptions());
-        driver.get("http://app:3000");
+        driver.get("http://connectoo-app-1:3000");
 
         assertTrue(driver.getTitle().contains("Connectoo"),
                 () -> "Expected page title to contain Connectoo, got: " + driver.getTitle());
