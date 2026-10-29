@@ -14,7 +14,7 @@ class UiTest {
     @Test
     void homePageTitleContainsConnectoo() throws MalformedURLException {
         String remoteUrl = System.getenv().getOrDefault(
-                "SELENIUM_REMOTE_URL", "http://localhost:4444/wd/hub");
+                "SELENIUM_REMOTE_URL", "http://selenium:4444/wd/hub");
         driver = new RemoteWebDriver(new URL(remoteUrl), new ChromeOptions());
         driver.get("http://app:3000");
 
