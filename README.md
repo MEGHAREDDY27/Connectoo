@@ -2,7 +2,7 @@
 
 > **Civic issues, connected to action.**
 >
-> Connectoo is a multi-page civic administration platform built by **Team FairCare** for the **Smart India Hackathon**. It helps bridge the gap between residents reporting local problems and the public teams responsible for addressing them. By giving citizens, officials, and field workers a shared view of an issue's progress, Connectoo makes civic problem-solving more visible and accountable.
+> Connectoo is a multi-page civic administration platform built by **Team Connectoo**. It helps bridge the gap between residents reporting local problems and the public teams responsible for addressing them. By giving citizens, officials, and field workers a shared view of an issue's progress, Connectoo makes civic problem-solving more visible and accountable.
 
 [![Node.js](https://img.shields.io/badge/Node.js-22%2B-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
@@ -159,7 +159,11 @@ For automated releases, connect the GitHub webhook to the Jenkins job and config
 
 ## 👥 Contributors
 
-**Team FairCare** — creators of Connectoo for the **Smart India Hackathon**.
+**Team Connectoo**
+
+- [Contributor name] — [role or area of contribution]
+- [Contributor name] — [role or area of contribution]
+- [Contributor name] — [role or area of contribution]
 
 ---
 
