@@ -3,12 +3,12 @@ const bcrypt = require('bcrypt');
 const db = require('../config/db');
 
 const users = [
-  { username: 'admin', display_name: 'Connectoo Admin', email: 'admin@civic.local', password: 'Admin@123', role: 'authority' },
-  { username: 'officer1', display_name: 'Municipal Officer', email: 'officer1@civic.local', password: 'Officer@123', role: 'authority' },
-  { username: 'priya_sharma', display_name: 'Priya Sharma', email: 'priya.sharma@civic.local', password: 'Citizen@123', role: 'citizen' },
-  { username: 'rahul_reddy', display_name: 'Rahul Reddy', email: 'rahul.reddy@civic.local', password: 'Citizen@123', role: 'citizen' },
-  { username: 'sneha_patel', display_name: 'Sneha Patel', email: 'sneha.patel@civic.local', password: 'Citizen@123', role: 'citizen' },
-  { username: 'amit_kumar', display_name: 'Amit Kumar', email: 'amit.kumar@civic.local', password: 'Citizen@123', role: 'citizen' },
+  { username: 'admin', display_name: 'Connectoo Admin', email: 'admin@civic.local', password: bcrypt.hashSync('Admin@123', 10), role: 'authority' },
+  { username: 'officer1', display_name: 'Municipal Officer', email: 'officer1@civic.local', password: bcrypt.hashSync('Officer@123', 10), role: 'authority' },
+  { username: 'priya_sharma', display_name: 'Priya Sharma', email: 'priya.sharma@civic.local', password: bcrypt.hashSync('Citizen@123', 10), role: 'citizen' },
+  { username: 'rahul_reddy', display_name: 'Rahul Reddy', email: 'rahul.reddy@civic.local', password: bcrypt.hashSync('Citizen@123', 10), role: 'citizen' },
+  { username: 'sneha_patel', display_name: 'Sneha Patel', email: 'sneha.patel@civic.local', password: bcrypt.hashSync('Citizen@123', 10), role: 'citizen' },
+  { username: 'amit_kumar', display_name: 'Amit Kumar', email: 'amit.kumar@civic.local', password: bcrypt.hashSync('Citizen@123', 10), role: 'citizen' },
 ];
 
 const reports = [
@@ -94,7 +94,7 @@ const insertAcknowledgement = db.prepare(
 
 const seed = db.transaction(() => {
   for (const user of users) {
-    insertUser.run(user.username, user.email, bcrypt.hashSync(user.password, 10), user.role, user.display_name);
+    insertUser.run(user.username, user.email, user.password, user.role, user.display_name);
     updateDisplayName.run(user.display_name, user.username);
   }
 
