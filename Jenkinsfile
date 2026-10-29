@@ -1,12 +1,15 @@
 pipeline {
     agent any
     
+    tools {
+        maven 'Maven-3'
+    }
+    
     stages {
         stage('Checkout GitHub') {
             steps {
                 git branch: 'main', url: 'https://github.com/MEGHAREDDY27/Connectoo.git'
                 sh 'echo "Repository cloned successfully"'
-                sh 'ls -la'
             }
         }
         stage('Check Docker') {
@@ -31,7 +34,8 @@ pipeline {
         }
         stage('Verify Deployment') {
             steps {
-                echo 'Verifying application is live on port 3000...'
+                echo 'Running automated Selenium UI tests...'
+                sh 'mvn test'
             }
         }
         stage('Post Actions') {
